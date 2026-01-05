@@ -278,7 +278,7 @@ def submit_contact_form_old(form_data: Dict[str, Any], generated_message: str,jo
             # driver = webdriver.Chrome(options=chrome_options)
             from selenium.webdriver.chrome.service import Service
             from webdriver_manager.chrome import ChromeDriverManager
-
+            logger.info(f"Going TO opend Driver : {form_data['form_url']}")
             driver = webdriver.Chrome(
                 service=Service(ChromeDriverManager().install()),
                 options=chrome_options
@@ -410,6 +410,7 @@ def submit_contact_form_old(form_data: Dict[str, Any], generated_message: str,jo
             # }
 
             print(data, "filling this - - - -")
+            logger.info(f"filling this - - - - : {data}")
 
             try:
                 elements = driver.find_elements(By.XPATH, "//input|//textarea|//select")
@@ -1280,26 +1281,31 @@ def mark_done(contact_id):
 
 
 def recover_stuck_jobs():
-    conn = _get_db_conn()
-    if not conn:
-        return
-    cur = conn.cursor()
-    cur.execute("""
-        UPDATE contact_urls
-        SET form_status='PENDING',
-            worker_id=NULL,
-            locked_at=NULL,
-            retry_count = retry_count + 1
-        WHERE form_status='PROCESSING'
-          AND locked_at < NOW() - INTERVAL '%s minutes'
-          AND retry_count < %s;
-    """, (LOCK_TIMEOUT_MINUTES, MAX_RETRIES))
-    conn.commit()
-    conn.close()
+    try:
+        conn = _get_db_conn()
+        if not conn:
+            return
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE contact_urls
+            SET form_status='PENDING',
+                worker_id=NULL,
+                locked_at=NULL,
+                retry_count = retry_count + 1
+            WHERE form_status='PROCESSING'
+              AND locked_at < NOW() - INTERVAL '%s minutes'
+              AND retry_count < %s;
+        """, (LOCK_TIMEOUT_MINUTES, MAX_RETRIES))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.info(f"Error in recover_stuck_jobs: {e}")
 
 
 def try_lock_job(contact_id):
+    logger.info(f"Going for connection: {contact_id}")
     conn = _get_db_conn()
+
     if not conn:
         return None
 
@@ -1335,6 +1341,7 @@ def try_lock_job(contact_id):
     row = cur.fetchone()
     conn.commit()
     conn.close()
+    logger.info(f"contact_urls Updated to Pending: {row}")
     return dict(row) if row else None
 
 def get_instance_private_ip():
@@ -1343,7 +1350,9 @@ def get_instance_private_ip():
             "http://169.254.169.254/latest/meta-data/local-ipv4",
             timeout=1
         )
+        logger.info(f"IP Details: {r.text}")
         return r.text
+
     except Exception:
         return "unknown"
 def update_aws_job_metadata(
@@ -1390,6 +1399,8 @@ def update_aws_job_metadata(
         "worker_instance_ip=%s"
     ])
 
+    logger.info(f"Field details to updated DB : {contact_id}")
+
     values.extend([QUEUE_URL, AWS_REGION, INSTANCE_PRIVATE_IP])
 
     sql = f"""
@@ -1411,6 +1422,7 @@ if __name__ == '__main__':
     logger.info(f"SQS Worker started: {WORKER_ID}")
 
     recover_stuck_jobs()
+    logger.info(f"Going for sqs message - - - - ")
 
     while not SHUTDOWN:
         resp = sqs.receive_message(
@@ -1425,6 +1437,7 @@ if __name__ == '__main__':
         # resp["Messages"][0]="1"
         # msg["ReceiptHandle"]="11"
         # msg["MessageId"]="11"
+        logger.info(f"SQS Worker started and details: {resp}")
 
         if "Messages" not in resp:
             continue
@@ -1440,6 +1453,7 @@ if __name__ == '__main__':
             # contact_id =""
         except Exception:
             sqs.delete_message(QueueUrl=QUEUE_URL, ReceiptHandle=receipt)
+            logger.info(f"SQS Worker Deleted: {WORKER_ID}")
             continue
 
         job = try_lock_job(contact_id)
