@@ -401,7 +401,7 @@ def submit_contact_form_old(form_data: Dict[str, Any], generated_message: str,jo
 
     contact_id = form_data.get('id') or form_data.get('contact_id')
     contact_row_like = {
-        'full_name': form_data.get('full_name'),
+        'full_name': form_data.get('full_name') or form_data.get('first_name'),
         'first_name': form_data.get('first_name'),
         'last_name': form_data.get('last_name'),
         'company_name': form_data.get('company_name'),
@@ -1944,7 +1944,8 @@ def update_aws_job_metadata(
     if completed:
         try:
             utc_now = datetime.utcnow().replace(tzinfo=pytz.UTC)
-            user_timezone = pytz.timezone(job['time_zone'])
+            # user_timezone = pytz.timezone(job['time_zone'])
+            user_timezone = pytz.timezone('US/Eastern')
             user_completed_time = utc_now.astimezone(user_timezone)
             fields.append("user_completed_time=%s")
             values.append(str(user_completed_time))
