@@ -1431,19 +1431,20 @@ def submit_contact_form_old(form_data: Dict[str, Any], generated_message: str,jo
                                                     'form_url': form_data.get('form_url', '')
                                                 }
 
-            # Wait for submission
-            try:
-                width = driver.execute_script("return document.body.scrollWidth")
-                height = driver.execute_script("return document.body.scrollHeight")
-
-                driver.set_window_size(width, 15000)
-
-                screenshot_bytes = driver.get_screenshot_as_png()
-
-                logger.info(f"Taking screenshot Captured - - - -")
-            except Exception as e:
-                screenshot_bytes = None
-                logger.info(f"Taking screenshot Error- -  - - - - {e}")
+            # # Wait for submission
+            # try:
+            #     width = driver.execute_script("return document.body.scrollWidth")
+            #     height = driver.execute_script("return document.body.scrollHeight")
+            #
+            #     driver.set_window_size(width, 15000)
+            #
+            #     screenshot_bytes = driver.get_screenshot_as_png()
+            #
+            #     logger.info(f"Taking screenshot Captured - - - -")
+            # except Exception as e:
+            #     screenshot_bytes = None
+            #     logger.info(f"Taking screenshot Error- -  - - - - {e}")
+            screenshot_bytes = None
             time.sleep(5)
 
             # Check for success indicators
