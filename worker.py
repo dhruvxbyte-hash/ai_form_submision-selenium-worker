@@ -421,7 +421,7 @@ def submit_contact_form_old(form_data: Dict[str, Any], generated_message: str,jo
         try:
             # driver = webdriver.Chrome(options=chrome_options)
             from selenium.webdriver.chrome.service import Service
-            from webdriver_manager.chrome import ChromeDriverManager
+            # from webdriver_manager.chrome import ChromeDriverManager
             logger.info(f"Going TO opend Driver : {form_data['form_url']}")
             # service = Service(
             #     ChromeDriverManager().install(),
@@ -2110,8 +2110,13 @@ def get_or_scrape_form_url(job):
         try:
             chrome_options = _setup_chrome_options()
             from selenium.webdriver.chrome.service import Service
-            from webdriver_manager.chrome import ChromeDriverManager
-            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+            # from webdriver_manager.chrome import ChromeDriverManager
+            # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+            service = Service("/usr/local/bin/chromedriver")
+            driver = webdriver.Chrome(
+                service=service,
+                options=chrome_options
+            )
             driver.get(website)
             time.sleep(3)
             html = driver.page_source
