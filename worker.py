@@ -1361,7 +1361,7 @@ def submit_contact_form_old(form_data: Dict[str, Any], generated_message: str,jo
                 except:
                     try:
                         logger.info("  advancesd - -- - -")
-                        driver.execute_script("document.querySelector('form').submit();")
+                        driver.find_element(By.CSS_SELECTOR, "form button[type='submit']").click()
                         logger.info(" submitted 3 with advancesd - -- - -")
                         logger.info(f"Form 3 submitted successfully{form_data['form_url']}")
 
@@ -1390,7 +1390,7 @@ def submit_contact_form_old(form_data: Dict[str, Any], generated_message: str,jo
                                 # Submit form
                                 try:
                                     logger.info("  advancesd - -- - -")
-                                    driver.execute_script("document.querySelector('form').submit();")
+                                    driver.find_element(By.CSS_SELECTOR, "form button[type='submit']").click()
                                     logger.info(" submitted with advancesd - -- - -")
                                 except Exception as e:
                                     logger.info("Retry to submit")
